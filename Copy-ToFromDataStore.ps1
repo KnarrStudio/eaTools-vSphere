@@ -53,7 +53,7 @@ Function Copy-ToFromDatastore {
       [ValidateLength(1,3)]
       [Alias('RemoteName')][string]$dsname,
       
-      [Parameter(Position = 0,Mandatory=$false,ValueFromPipeline=$true)]
+      [Parameter(Position = 0,ValueFromPipeline)]
       [Alias('Source')]
       [String]$LocalFolder = "$env:homedrive\Temp" ,
       
@@ -101,7 +101,7 @@ Function Copy-ToFromDatastore {
    }
 
    #$SourceFileFolder = Get-ChildItem -Path $SourceFolder | Select-Object -ExpandProperty Name | Out-GridView -PassThru
-   Write-Verbose -Message ('Source File Selected {0}' -f $SourceFileFolder)
+   Write-Verbose -Message ('Source File Selected {0}' -f $SourceFolder)
    
    #Copy-DatastoreItem -Item $SourceFolder+"\*" -Destination $DestinationFolder -Force -Recurse
    Write-Verbose -Message 'Copy-DatastoreItem'
