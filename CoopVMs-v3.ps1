@@ -9,7 +9,7 @@
 - Reads in server names from the file: COOP-serverlist.csv (This should be in the same dir as this script)
     - Side Note: Future plans will be to remove the list and COOP servers based on tests.  You may see some of the "pre" work already.
 - Copies COOP to: ESXi06-LOCALdatastore02
-- Write to Host: 214.18.207.89
+- Write to Host: 192.169.1.89
 
 .PARAMETER <paramName>
    <Description of script parameter>
@@ -87,7 +87,7 @@ Function Main-Menu {
 
 Function Get-VMinformation {
 	# User settings
-	$Script:VMHostIP = "214.54.192.18"
+	$Script:VMHostIP = "2192.169.1.18"
 	$Script:WhatIfPreference = $true #This is a safety measure that I am working on.  My scripts will have a safety mode, or punch the monkey to actually execute.  You can thank Phil West for this idea, when he removed all of the printers on the print server when he double-clicked on a vbs script.
 	$Script:MainMenuChoice = 0 # Sets main menu choice
 	$Script:VMServerList = ".\COOP-serverlist.csv" # The list of servers 
