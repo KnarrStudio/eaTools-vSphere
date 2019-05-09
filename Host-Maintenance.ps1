@@ -85,8 +85,8 @@ Set-VMHost $HostOne -State Connected | Out-Null
 }
 
 function BalanceVMs (){
-	$host18 = "214.54.192.18"
-	$host19 = "214.54.192.19"
+	$host18 = "192.168.192.18"
+	$host19 = "192.168.192.19"
 
 
 	$tagged18 = get-vm -tag Host_18
@@ -115,8 +115,8 @@ function BalanceVMs (){
 
 
 
-$NorfolkHosts = Get-VMHost | where {$_.name -notlike "214.54.208.*"}
-$NorfolkHosts.name | ft Name
+$FolkMusicHost = Get-VMHost | where {$_.name -notlike "192.168.208.*"}
+$FolkMusicHost.name | ft Name
 
 
 # Begin Script
@@ -124,7 +124,7 @@ $WhatIfPreference = $true <#This is a safety measure that I am working on.  My s
 $MenuSelection = 0
 $ServerList = ".\COOP-serverlist.csv"
 $DataStoreStore = Get-Datastore | where {$_.name -like "LOCALdatastore*"}
-$VMHostIP = "214.54.192.18"
+$VMHostIP = "192.168.192.18"
 $local = Get-Location
 
 
@@ -134,7 +134,7 @@ Set-Location .\
 #Get list of Norfolk VM's under control of vCenter
 $rebootOther = "y"
 $balance = "y"
-$NorfolkHosts = Get-VMHost | where {$_.name -notlike "214.54.208.*"}
+$FolkMusicHost = Get-VMHost | where {$_.name -notlike "192.168.208.*"}
 
 
 
@@ -186,9 +186,9 @@ switch ($MenuSelection){
 sleep 4
 Clear-Host
 
-$NorfolkHosts.name | ft Name
+$FolkMusicHost.name | ft Name
 $HostOne = Read-Host "Enter the host IP Address you want to reboot"
-$HostTwo = Read-Host "Enter other host" # $NorfolkHosts.name -ne $HostOne | Out-String
+$HostTwo = Read-Host "Enter other host" # $FolkMusicHost.name -ne $HostOne | Out-String
 MoveVMsRebootHost $HostOne $HostTwo
 
 $rebootOther = Read-Host "Would you like to reboot the other host [y]/n: "
