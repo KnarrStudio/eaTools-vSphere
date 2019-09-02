@@ -13,7 +13,7 @@
 . "$env:USERPROFILE\Documents\GitHub\PowerShell_VM-Modules\f_CreateMenu.ps1"
 
 # Functions
-Function ScriptSafety
+Function Set-Safety
 {
   If ($WhatIfPreference -eq $true)
   {
@@ -26,17 +26,18 @@ Function ScriptSafety
 }
 #Safety-Display
 
-Function Menu-Main
+Function Show-MainMenu
 {
-  Clear-Host
-  ScriptSafety
-  Write-Host `n
+  $NewLineHere = '`n'
+Clear-Host
+  Set-Safety
+  Write-Host $NewLineHere
   Write-Host 'Welcome to the Maintenance Center' -BackgroundColor Yellow -ForegroundColor DarkBlue
-  Write-Host `n
+  Write-Host $NewLineHere
   #Write-Host "Datastore to be written to: "(get-datastore).name #$DataStoreStore
   #Write-Host "VM Host to store COOPs: "$VMHostIP
   #Write-Host "Current File Location: " $local
-  Write-Host `n
+  Write-Host $NewLineHere
   Write-Host '0 = Set Safety On/Off'
   Write-Host "1 = Move all VM's to one host"
   Write-Host '2 = Reboot Empty host'
@@ -44,14 +45,13 @@ Function Menu-Main
   Write-Host '4 = Move, Reboot and Balance VM environment'
   Write-Host '5 = VM/Host information'
   Write-Host 'E = to Exit'
-  Write-Host `n
+  Write-Host $NewLineHere
 }
-#Menu-Main
+#Show-MainMenu
 
 
-function MoveVMs
+function Move-VMsTo
 {
-
   [CmdletBinding()]
   param
   (
@@ -59,7 +59,7 @@ function MoveVMs
 
     [Object]$HostTwo
   )
-do
+  do
   {
     $servers = get-vm | Where-Object -FilterScript {
       $_.vmhost.name -eq $HostOne
@@ -78,9 +78,8 @@ do
 
 
 
-function MoveVMsRebootHost
+function Move-VMsRebootHost
 {
-
   [CmdletBinding()]
   param
   (
@@ -88,7 +87,7 @@ function MoveVMsRebootHost
 
     [Object]$HostTwo
   )
-do
+  do
   {
     $servers = get-vm | Where-Object -FilterScript {
       $_.vmhost.name -eq $HostOne
@@ -128,48 +127,30 @@ do
   Write-Host ('{0} back online' -f $HostOne)
   $null = Set-VMHost $HostOne -State Connected
 }
-do {sleep 15
-	$ServerState = (get-vmhost $HostOne).ConnectionState
-	Write-Host "Shutting Down $HostOne" -ForegroundColor Magenta
-} while ($ServerState -ne "NotResponding")
-Write-Host "$HostOne is Down" -ForegroundColor Magenta
-
-do {sleep 60
-	$ServerState = (get-vmhost $HostOne).ConnectionState
-	Write-Host "Waiting for Reboot ..."
-} while($ServerState -ne "Maintenance")
-Write-Host "$HostOne back online"
-Set-VMHost $HostOne -State Connected | Out-Null
-}
-
-function BalanceVMs (){
-	$host18 = "192.168.192.18"
-	$host19 = "192.168.192.19"
-
-
-	$tagged18 = get-vm -tag Host_18
-	$tagged19 = get-vm -tag Host_19
-
-	$servers = Get-VM
-
-	foreach($server in $tagged18){
-		if($server.vmhost.name -ne $host18){
-			Write-Host "Moving $server to Host-18" -ForegroundColor DarkYellow
-			move-vm $server -Destination $host18 #-whatif
-		}
-	}
-
-	foreach($server in $tagged19){
-		if($server.vmhost.name -ne $host19){
-			Write-Host "Moving $server to Host-19" -ForegroundColor DarkMagenta
-			move-vm $server -Destination $host19 #-whatif
-		}
-	}
-
-function BalanceVMs ()
+do 
 {
-  $host18 = '192.168.1.18'
-  $host19 = '192.168.1.19'
+  Start-Sleep -Seconds 15
+  $ServerState = (get-vmhost $HostOne).ConnectionState
+  Write-Host ('Shutting Down {0}' -f $HostOne) -ForegroundColor Magenta
+}
+while ($ServerState -ne 'NotResponding')
+Write-Host ('{0} is Down' -f $HostOne) -ForegroundColor Magenta
+
+do 
+{
+  Start-Sleep -Seconds 60
+  $ServerState = (get-vmhost $HostOne).ConnectionState
+  Write-Host 'Waiting for Reboot ...'
+}
+while($ServerState -ne 'Maintenance')
+Write-Host ('{0} back online' -f $HostOne)
+$null = Set-VMHost $HostOne -State Connected
+
+
+function Start-BalanceVMs ()
+{
+  $host18 = '192.168.192.18'
+  $host19 = '192.168.192.19'
 
 
   $tagged18 = get-vm -tag Host_18
@@ -196,21 +177,26 @@ function BalanceVMs ()
   }
 }
 
+
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 
 
-$FolkMusicHost = Get-VMHost | where {$_.name -notlike "192.168.208.*"}
-$FolkMusicHost.name | ft Name
+$FolkMusicHost = Get-VMHost | Where-Object -FilterScript {
+  $_.name -notlike '192.168.208.*'
+}
+$FolkMusicHost.name | Format-Table -Property Name
 
 
 # Begin Script
 $WhatIfPreference = $true <#This is a safety measure that I am working on.  My scripts will have a safety mode, or punch the monkey to actually execute.  You can thank Phil West for this idea, when he removed all of the printers on the print server when he double-clicked on a vbs script.#>
 $MenuSelection = 0
-$ServerList = ".\COOP-serverlist.csv"
-$DataStoreStore = Get-Datastore | where {$_.name -like "LOCALdatastore*"}
-$VMHostIP = "192.168.192.18"
+$ServerList = '.\COOP-serverlist.csv'
+$DataStoreStore = Get-Datastore | Where-Object -FilterScript {
+  $_.name -like 'LOCALdatastore*'
+}
+$VMHostIP = '192.168.192.18'
 $local = Get-Location
 
 
@@ -218,9 +204,11 @@ Set-Location -Path .\
 
 # Begin Script
 #Get list of Norfolk VM's under control of vCenter
-$rebootOther = "y"
-$balance = "y"
-$FolkMusicHost = Get-VMHost | where {$_.name -notlike "192.168.208.*"}
+$rebootOther = 'y'
+$balance = 'y'
+$FolkMusicHost = Get-VMHost | Where-Object -FilterScript {
+  $_.name -notlike '192.168.208.*'
+}
 
 
 
@@ -229,7 +217,7 @@ Do
 {
   $MenuSelection = ''
 
-  #Menu-Main
+  #Show-MainMenu
   CreateMenu -Title 'Welcome to the Maintenance Center' -MenuItems 'Set Safety On/Off', 'EXIT', "Move all VM's to one host", 'Reboot Empty host', "Balance all VM's per 'tag'", 'Move and Reboot and Balance VM environment', 'VM/Host information', 'Exit' -TitleColor Red -LineColor Cyan -MenuItemColor Yellow
 
   $MenuSelection = Read-Host -Prompt 'Enter a selection from above'
@@ -263,7 +251,7 @@ switch ($MenuSelection){
     Write-Host "This processes can be completed by using the following command in the PowerCLI: 'move-vm VM-SERVER -destination VM-HOST'" -ForegroundColor DarkYellow
     if($HostTwo -ne $HostOne)
     {
-      MoveVMs $HostOne $HostTwo
+      Move-VMsTo $HostOne $HostTwo
     }
   }
   4
@@ -279,7 +267,7 @@ switch ($MenuSelection){
   6
   {
     Clear-Host
-    BalanceVMs
+    Start-BalanceVMs
   }
   7
   {
@@ -295,19 +283,19 @@ switch ($MenuSelection){
 Start-Sleep -Seconds 4
 Clear-Host
 
-$FolkMusicHost.name | ft Name
-$HostOne = Read-Host "Enter the host IP Address you want to reboot"
-$HostTwo = Read-Host "Enter other host" # $FolkMusicHost.name -ne $HostOne | Out-String
-MoveVMsRebootHost $HostOne $HostTwo
+$FolkMusicHost.name | Format-Table -Property Name
+$HostOne = Read-Host -Prompt 'Enter the host IP Address you want to reboot'
+$HostTwo = Read-Host -Prompt 'Enter other host' # $FolkMusicHost.name -ne $HostOne | Out-String
+Move-VMsRebootHost $HostOne $HostTwo
 
 $rebootOther = Read-Host -Prompt 'Would you like to reboot the other host [y]/n: '
 if($rebootOther -eq 'y')
 {
-  MoveVMsRebootHost $HostTwo $HostOne
+  Move-VMsRebootHost $HostTwo $HostOne
 }
 
 $balance = Read-Host -Prompt 'Would you like to balance the servers [y]/n: '
 if($balance -eq 'y')
 {
-  BalanceVMs
+  Start-BalanceVMs
 }
