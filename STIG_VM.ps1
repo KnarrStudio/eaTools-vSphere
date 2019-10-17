@@ -1,4 +1,5 @@
-﻿Function Set-VmStigSettings 
+﻿
+Function Set-VmStigSettings 
 {
   <#
       .SYNOPSIS
@@ -20,18 +21,16 @@
       Set-VmStigSettings -VmServer Value -ReportOutput -LogEvents
       Describe what this call does
 
-      .NOTES
-      Place additional notes here.
-
       .LINK
       URLs to related sites
-      The first link is opened by Get-Help -Online Set-VmStigSettings
+       https://www.vmware.com/files/xls/vSphere_6_0_Hardening_Guide_GA_15_Jun_2015.xls
+
 
       .INPUTS
-      List of input types that are accepted by this function.
+        The vSphere hardenting guide listed above
 
       .OUTPUTS
-      List of output types produced by this function.
+      The STIG settings that were set
   #>
 
 
@@ -55,7 +54,7 @@
   BEGIN{
     if ($LogEvents)
     {
-      Write-Verbose -Message 'Finding error log file'
+      Write-Verbose -Message 'Searching for error log file'
       $i = 0
       Do 
       {

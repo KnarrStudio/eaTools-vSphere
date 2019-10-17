@@ -1,4 +1,5 @@
 ﻿#requires -Version 1.0
+
 function Move-TaggedVmServers
 {
   <#
@@ -6,7 +7,7 @@ function Move-TaggedVmServers
       Quick Script to move tagged VMs to a single host.
 
       .EXAMPLE
-      Move-TaggedVmServers -TaggedVm MyTag -LandingHost TempHost -Verbose
+      Move-TaggedVmServers -TaggedVm MyTag -DestinationHost TempHost -Verbose
 
       This will move all of the vms tagged with "MyTag" to the "TempHost"
 
@@ -14,6 +15,7 @@ function Move-TaggedVmServers
       'https://github.com/KnarrStudio/eaTools-vSphere'
 
   #>
+  
   [CmdletBinding(HelpUri = 'https://github.com/KnarrStudio/eaTools-vSphere',
   ConfirmImpact = 'Medium')]
 
@@ -25,9 +27,7 @@ function Move-TaggedVmServers
 
     [Parameter(Mandatory = $false, Position = 1)]
     [string]
-    $LandingHost = '192.168.1.18'
-    
-
+    $DestinationHost = '192.168.1.18'
   )
   
   $TaggedOne = (get-vm -tag $TaggedVm)
@@ -35,7 +35,7 @@ function Move-TaggedVmServers
   foreach($server in $TaggedOne)
   {
     Write-Verbose -Message ('Moving {0} to Host-18' -f $server)
-    move-vm -name $server -Destination $LandingHost
+    move-vm -name $server -Destination $DestinationHost
   }
 }
 
