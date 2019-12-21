@@ -141,8 +141,8 @@ Function New-VmClones {
   if ($COOPprocess -eq '3'){Clear-Host}
 
   #get-vm *gm* -tag "COOPdr" | where {$_.powerstate -eq "PoweredOn"} | ft Name, ResourcePool -AutoSize
-  #$VMServer  = get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "rsrcngmfs02") -and ($_.name -ne "RSRCNGMNB01") -and ($_.name -ne "rsrcngmfs01") -and ($_.name -ne "rsrcngmcmps01")} | select Name, ResourcePool
-  #get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "rsrcngmfs02") -and ($_.name -ne "RSRCNGMNB01") -and ($_.name -ne "rsrcngmfs01") -and ($_.name -ne "rsrcngmcmps01")} | ft Name, ResourcePool -AutoSize
+  #$VMServer  = get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "RFVngmfs02") -and ($_.name -ne "RFVNGMNB01") -and ($_.name -ne "RFVngmfs01") -and ($_.name -ne "RFVngmcmps01")} | select Name, ResourcePool
+  #get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "RFVngmfs02") -and ($_.name -ne "RFVNGMNB01") -and ($_.name -ne "RFVngmfs01") -and ($_.name -ne "RFVngmcmps01")} | ft Name, ResourcePool -AutoSize
 
   $VMServer  = get-vm *gm* -tag 'COOPdr' | Where-Object {$_.powerstate -eq 'PoweredOn'}
 

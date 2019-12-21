@@ -66,7 +66,7 @@ Function Copy-ToFromDatastore
       
   )
    
-  #Connect-viserver -Server 214.54.192.21
+  #Connect-viserver -Server 192.168.0.21
 
   #$datastore = Get-Datastore | Select-Object -ExpandProperty Name | Out-GridView -PassThru
 
