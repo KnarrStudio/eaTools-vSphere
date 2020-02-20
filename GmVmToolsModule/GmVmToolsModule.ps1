@@ -194,9 +194,9 @@ $COOPprocess = 0
 
 $ServerList = '.\COOP-serverlist.csv'
 
-$DataStoreStore = Get-Datastore | Where-Object {$_.name -like 'ESXi06-LOCALdatastore02'}
+$DataStoreStore = Get-Datastore | Where-Object {$_.name -like 'ESXi-LOCALdatastore'}
 
-$VMHostIP = '214.18.207.89'
+$VMHostIP = '192.168.207.89'
 
 $local = Get-Location
 
