@@ -35,7 +35,7 @@
   [CmdletBinding(SupportsShouldProcess,ConfirmImpact = 'Low')]
 
   param(
-    [Parameter(Mandatory,HelpMessage = 'Add one or more computer namesage for user',
+    [Parameter(Mandatory,HelpMessage = 'Add one or more computer names',
         ValueFromPipeline,
     ValueFromPipelineByPropertyName)]
     [Alias('hostname')]
