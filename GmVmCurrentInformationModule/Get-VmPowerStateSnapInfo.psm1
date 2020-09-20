@@ -32,6 +32,8 @@
   #Set variables
   $DoubleLineBoarder = '============================='
   $NewLine = "`n"
+  $report = @()
+  
   
   #Get All
   $AllVmHosts = Get-VmHost
@@ -75,7 +77,37 @@
 '@ -f $MessageHeading, $MessageCount)
   }
   
+  ########
+
+  foreach($vm in Get-View -ViewType Virtualmachine){
+
+    $vms = "" | Select-Object VMName,VMState, TotalCPU, CPUShare, TotalMemory, Datastore, UsedSpaceGB, ProvisionedSpaceGB, Tags
+
+    $vms.VMName = $vm.Name
+
+    $vms.VMState = $vm.summary.runtime.powerState
+
+    $vms.TotalCPU = $vm.summary.config.numcpu
+
+    $vms.CPUShare = $vm.Config.CpuAllocation.Shares.Level
+
+    $vms.TotalMemory = $vm.summary.config.memorysizemb
+
+    $vms.Datastore = $vm.Config.DatastoreUrl[0].Name
+
+    $vms.UsedSpaceGB = [math]::Round($vm.Summary.Storage.Committed/1GB,2)
+
+    $vms.ProvisionedSpaceGB = [math]::Round($vm.Summary.Storage.UnCommitted/1GB,2)
+
+    $vms.Tags = (Get-TagAssignment -Entity (Get-VIObjectByVIView -VIView $vm) -Category "customer").Tag.Name
+
+    $report += $vms
+
+  }
+
+  $report
   
+  ########
   If ($PoweredOnVM.count -gt 0)
   {
     Write-MsgHeader -MessageHeading $MsgOut.PoweredOn -MessageCount $VmCountOn
@@ -86,11 +118,11 @@
     Write-MsgHeader -MessageHeading $MsgOut.PoweredOff -MessageCount $VmCountOff
   }
 
-   # Display Snapshot information
+  # Display Snapshot information
   If ($Snapshotinfo.count -gt 0)
   {
-     Write-MsgHeader -MessageHeading $MsgOut.SnapshotInformation
-  foreach($Snapshot in $AllSnapshots)
+    Write-MsgHeader -MessageHeading $MsgOut.SnapshotInformation
+    foreach($Snapshot in $AllSnapshots)
     {
       $Snapshotinfo = $Snapshot | Select-Object -Property VM, Name, Created, @{
         n = 'SizeGb'
