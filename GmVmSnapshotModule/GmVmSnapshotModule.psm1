@@ -1,17 +1,10 @@
-﻿
-
-
-#R equires - Module vmware.vimautomation.core
-
-
+﻿#R equires - Module vmware.vimautomation.core
 if ($global:DefaultVIServers.Count -eq 0) 
 {
   Connect-VIServer -menu
 }
-
-Function New-VmSnapshot
+Function New-VmSnapshot 
 {
-
   <#
       .SYNOPSIS
       Creates Snapshots of the selected VM or all powered on VM's and gives the Snapshot a common Name
@@ -41,78 +34,61 @@ Function New-VmSnapshot
       Contact : 5276
 
   #>
-  
   [Cmdletbinding()]
-  
   Param(
-    [Parameter(Mandatory = $false,HelpMessage = 'Add help message for user',ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [Alias('computername','hostname')]
-    [ValidateLength(3,14)]
+    [Parameter(Mandatory = $false, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [Alias('computername', 'hostname')]
+    [ValidateLength(3, 14)]
     [AllowEmptyString()]
     [string[]]$VMServers,
-    [Parameter(Mandatory,HelpMessage = 'Reason for Snapshot')]
-    [ValidateSet('Updates', 'Troubleshooting', 'SoftwareInstallation','Other')] 
+    [Parameter(Mandatory, HelpMessage = 'Reason for Snapshot')]
+    [ValidateSet('Updates', 'Troubleshooting', 'SoftwareInstallation', 'Other')] 
     [string]$SnapshotName,    
-    [Parameter(Mandatory,HelpMessage = 'VMs in what powerstate')]
-    [ValidateSet('PoweredOn','PoweredOff','Any')] 
+    [Parameter(Mandatory, HelpMessage = 'VMs in what powerstate')]
+    [ValidateSet('PoweredOn', 'PoweredOff', 'Any')] 
     [string]$PowerState,
     [string]$SnapshotDescription = 'Created by Script New-VmSnapshot.ps1',
     [Switch]$All,
     [String[]]$SkipSnapshotOf
-
   )
-  
-  begin{
-  
-
+  begin {
     Write-Verbose -Message ('Start Begin Section')
-
-function Select-VMServers
-{
-  [CmdletBinding()]
-  param
-  (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [Object]
-    $SkipSnapshotOf = @('erv'),
-    
-    [Parameter(Mandatory = $false, Position = 1)]
-    [System.String]
-    $PowerState = 'on',
-    
-    [Parameter(Mandatory = $false, Position = 2)]
-    [System.String]
-    $VMServers = 'server'
-  )
-
- if ($PowerState -ne 'Any')
+    function Select-VMServers 
     {
-      $VMServers = get-VM | Where-Object -FilterScript {
-        (
-        $_.PowerState -eq $PowerState)
-      }
-      else{
-        $VMServers = get-VM
-      }
-      $SelectedServers = $VMServers | Where-Object -FilterScript {
-        $found = $false 
-        foreach ($Exlusion in $SkipSnapshotOf) 
-        {
-          if($_.contains($Exlusion))
+      param
+      (
+        [Parameter(Mandatory = $false, Position = 0)]
+        [Object[]]$SkipSnapshotOf = @('dc'),
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string]
+        $PowerState = 'on',
+        [Parameter(Mandatory = $false, Position = 2)]
+        [string]
+        $VMServers = 'server'
+      )
+      if ($PowerState -ne 'Any') 
+      {
+        $VMServers = get-VM | Where-Object -FilterScript {
+          (
+          $_.PowerState -eq $PowerState)
+        }
+        else {
+          $VMServers = get-VM
+        }
+        $SelectedServers = $VMServers | Where-Object -FilterScript {
+          #$found = $false 
+          foreach ($Exclusion in $SkipSnapshotOf) 
           {
-            return $_
+            if ($_.contains($Exclusion)) 
+            {
+              return $_
+            }
           }
         }
       }
+      Return $SelectedServers
     }
-  Return $SelectedServers
-}
-
-
-
     # Write-Verbose ('VMservers {0}' -f $VMServers)
-    
-
     <#    if($VMServers -eq 'All') 
         {
         Write-Verbose -Message ('All Selected')
@@ -121,39 +97,24 @@ function Select-VMServers
         $VMServers = get-vm | Get-AllPoweredOnVms 
         Write-Information -MessageData 'Creating Snapshots of all systems' -InformationAction Continue
     }#>
-	  
     #Create Time/Date Stamp
     $TDStamp = Get-Date -UFormat '%Y%m%d'
-	
     #Get User Information
     [String]$SysAdmIntl = $env:USERNAME
     #Name of Snapshot
     [String]$SnapName = ('{0}-{1}' -f $TDStamp, $SnapshotName)
     # Description of Snapshot
     [String]$SnapDesc = ('{0} -- Run by: {1}' -f $SnapshotDescription, $SysAdmIntl)
-
     #Write-Verbose -Message ('Using Server List: {0}' -f $VMServers)
     Write-Verbose -Message ('Naming Snapshots: {0}' -f $SnapName)
   }
-  
-  process{
-  
-  if( -not $VMServers)  {  $VMServers = Select-VMServers -SkipSnapshotOf $SkipSnapshotOf -PowerState $PowerState    }
-
-    [Parameter(Mandatory = $false, Position = 1)]
-    [System.String]
-    $PowerState = 'on',
-    
-    [Parameter(Mandatory = $false, Position = 2)]
-    [System.String]
-    $VMServers
-
-
-
-
+  process {
+    if ( -not $VMServers) 
+    {
+      $VMServers = Select-VMServers -SkipSnapshotOf $SkipSnapshotOf -PowerState $PowerState
+    }
     Write-Verbose -Message ('Start Process Section')
-
-    if($SnapshotName -eq ('SoftwareInstallation' -or 'Troubleshooting'))
+    if ($SnapshotName -eq ('SoftwareInstallation' -or 'Troubleshooting')) 
     {
       foreach ($Server in $VMServers) 
       {
@@ -161,7 +122,7 @@ function Select-VMServers
         New-Snapshot -vm $Server -Name $SnapName -Description $SnapDesc -Quiesce:$true
       }
     }
-    else
+    else 
     {
       foreach ($Server in $VMServers) 
       {
@@ -170,33 +131,23 @@ function Select-VMServers
       }
     }
   }
-  
-	
-  end{
-  
-    Write-Verbose -Message ('Start End Section')
-  }
+  end { }
 }
-
 Function Remove-VMSnapshots 
 {
   Param(
-    [Parameter(Mandatory,HelpMessage = 'Add help message for user',ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [Alias('computername','hostname')]
-    [ValidateLength(3,14)]
+    [Parameter(Mandatory, HelpMessage = 'Add help message for user', ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [Alias('computername', 'hostname')]
+    [ValidateLength(3, 14)]
     [string[]]$VMServers,
-    
-    [Parameter(Mandatory,HelpMessage = 'Reason for Snapshot')]
-    [ValidateSet('Updates', 'Troubleshooting', 'SoftwareInstallation','Other')] 
+    [Parameter(Mandatory, HelpMessage = 'Reason for Snapshot')]
+    [ValidateSet('Updates', 'Troubleshooting', 'SoftwareInstallation', 'Other')] 
     [string]$SnapshotName,
     [string]$SnapshotDescription = 'Created by Script New-VmSnapshot.ps1',
     [Switch]$All
   )
-  
   #      An easy way to bulk remove Snapshots that have the same Snapshot Name
-
   $AllSnapshots = get-vm | get-snapshot  
-
   #Print list of all Snapshots on all VM's (ver1.3 edit done here)
   $RemoveSnapshots = $AllSnapshots |
   Select-Object -Property Name, VM, Created, @{
@@ -206,27 +157,22 @@ Function Remove-VMSnapshots
     }
   }, id |
   Out-GridView -PassThru -Title 'Select snapshots to delete and press OK'
-
   # Write-Host ('Based on the Snapshot name you entered: {0}' -f $RemoveSnapshots)
-
-  Write-Host "The following VM's have snapshots that will be removed: " 
+  Write-Host -Object "The following VM's have snapshots that will be removed: " 
   $RemoveSnapshots
-
   $Okay = 'N'
   $Okay = Read-Host -Prompt 'If this is Okay? Y/[N]'
-
   #Actual working part of code
-  If ($Okay -eq 'Y')
+  If ($Okay -eq 'Y') 
   {
     $RemoveSnapshots | Remove-Snapshot -confirm:$false -runasync #-whatif
   }
 }
-
 Function Show-VmSnapshots 
 {
   param(
-    [Parameter(Mandatory = $false,HelpMessage = 'Sort Snapshot list by')]
-    [ValidateSet('VM', 'Name', 'Created','SizeMB')] 
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('VM', 'Name', 'Created', 'SizeMB')] 
     [string]$SortOn = 'VM'
   )
   # Get all of the Snapshot
@@ -234,12 +180,8 @@ Function Show-VmSnapshots
   get-snapshot  |
   Sort-Object -Property $SortOn |
   Select-Object -Property VM, Name, Created, SizeMB, id
-  
-  
   # Display a list of Snapshots
   Write-Verbose -Message ('Total Snapshots: {0}' -f $AllSnapshots.count)
   $AllSnapshots | Format-Table -AutoSize
 }
-
-
 #Export-ModuleMember -Function Show-VmSnapshots, New-VmSnapshot, Remove-VMSnapshots
