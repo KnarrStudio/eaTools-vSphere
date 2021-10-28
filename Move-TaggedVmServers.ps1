@@ -13,7 +13,6 @@ function Move-TaggedVmServers
 
       .LINK
       'https://github.com/KnarrStudio/eaTools-vSphere'
-
   #>
   
   [CmdletBinding(HelpUri = 'https://github.com/KnarrStudio/eaTools-vSphere',
@@ -22,20 +21,16 @@ function Move-TaggedVmServers
   param
   (
     [Parameter(Mandatory = $false, Position = 0)]
-    [string]
-    $TaggedVm = 'host_18',
-
+    [string]$VmTag = 'host_18',
     [Parameter(Mandatory = $false, Position = 1)]
-    [string]
-    $DestinationHost = '192.168.1.18'
+    [string]$DestinationHost = '192.168.1.18'
   )
   
-  $TaggedOne = (get-vm -tag $TaggedVm)
-  
-  foreach($server in $TaggedOne)
+  $TaggedVms = (get-vm -tag $VmTag)
+  foreach($SingleVm in $TaggedVms)
   {
-    Write-Verbose -Message ('Moving {0} to Host-18' -f $server)
-    move-vm -name $server -Destination $DestinationHost
+    Write-Verbose -Message ('Moving {0} to {1}' -f $SingleVm, $DestinationHost)
+    move-vm -name $SingleVm -Destination $DestinationHost
   }
 }
 
