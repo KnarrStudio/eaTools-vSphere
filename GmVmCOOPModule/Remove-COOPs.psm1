@@ -1,5 +1,8 @@
 Function Remove-COOPs {
+[CmdletBinding(SupportsShouldProcess,ConfirmImpact = 'High')]
+param(
 
+)
    
    function Get-COOPdVMs
    {
@@ -28,10 +31,10 @@ Function Remove-COOPs {
    get-vm | Get-COOPdVMs | Format-Table -Property Name
 
    #Enter the date of the COOP vms that you want to remove.  From the printout of the list above, you will be able to select the unwanted dates.
-   $COOPdate = Read-Host -Prompt 'Enter the date of the COOP you want to remove (YYYYMMDD) '
+   $COOPdate = get-date #Read-Host -Prompt 'Enter the date of the COOP you want to remove (YYYYMMDD) '
 
    #Get List of the VM Clones you want to Remove.  This is similar to the first step, but uses the specific date you gave to search on.  This will be your list of systems to remove.
-$VMSvr = $VMServers | Get-COOPdVMs } #| ft Name, ResourcePool  -AutoSize
+#$VMSvr = $VMServers | Get-COOPdVMs } #| ft Name, ResourcePool  -AutoSize
 
 Write-Host -sep `n "Preparing to remove ALL COOP'ed vm servers below." $VMSvr -foreground Red
 
@@ -46,7 +49,7 @@ If ($OkRemove -eq 'Y'){
       If (($VMz.PowerState -eq 'PoweredOff') -and ($VMz.Name -like '*COOP*')){
          Write-Host -sep `n $VMz 'is in a Powered Off state and will be removed. ' -foregroundcolor Blue 
          #Write-Host "Remove-VM $VMz -DeletePermanently -confirm:$true "
-         Remove-VM $VMz -DeletePermanently -confirm:$true -runasync 
+         Remove-VM $VMz -DeletePermanently -confirm:$true -runasync -confirm
 
 }}}
 }
