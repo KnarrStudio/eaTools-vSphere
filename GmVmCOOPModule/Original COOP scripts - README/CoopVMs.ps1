@@ -75,55 +75,79 @@
 
 #############################################>
 
-Function Safety-Display{
-  If ($WhatIfPreference -eq $true){
-  Write-Verbose -Message 'Safety is ON' }
-  else{
-  Write-Verbose -Message 'Safety is OFF - Script will run'  }
+Function Safety-Display
+{
+  If ($WhatIfPreference -eq $true)
+  {
+    Write-Verbose -Message 'Safety is ON' 
+  }
+  else
+  {
+    Write-Verbose -Message 'Safety is OFF - Script will run'  
+  }
 }
 
-Function Safety-Switch (){
+Function Safety-Switch ()
+{
   $COOPprocess
   $WhatIfPreference
-  If ($COOPprocess -eq 0){    
-    If ($WhatIfPreference -eq $true){
-    $WhatIfPreference = $false}
-    else{$WhatIfPreference = $true}
+  If ($COOPprocess -eq 0)
+  {    
+    If ($WhatIfPreference -eq $true)
+    {
+      $WhatIfPreference = $false
+    }
+    else
+    {
+      $WhatIfPreference = $true
+    }
   }
   $COOPprocess
   return $WhatIfPreference
 }
 
-Function Show-MenuMain{
-
+Function Show-MenuMain
+{
   Write-Host '===================================='
-  Write-Host "0 = Set Safety On/Off"
-  Write-Host "1 = Remove Old COOPs and Create New"
-  Write-Host "2 = Remove Old COOPs"
-  Write-Host "3 = Create New COOPs"
-  Write-Host "4 = VM/COOP information"
-  Write-Host "E = to Exit"
+  Write-Host '0 = Set Safety On/Off'
+  Write-Host '1 = Remove Old COOPs and Create New'
+  Write-Host '2 = Remove Old COOPs'
+  Write-Host '3 = Create New COOPs'
+  Write-Host '4 = VM/COOP information'
+  Write-Host 'E = to Exit'
   Write-Host `n
-  }
+}
 
-Function Get-CurrentVMInformation {
+Function Get-CurrentVMInformation 
+{
   $ALLvms = get-vm
   $Snapshots = get-vm | get-snapshot
   $AllHost = Get-VMHost 
 
-  $PoweredOffVM = $ALLvms | Where-Object {($_.PowerState -eq "PoweredOff")}
-  $PoweredOnVM = $ALLvms | Where-Object {($_.PowerState -eq "PoweredOn")}
+  $PoweredOffVM = $ALLvms | Where-Object -FilterScript {
+    ($_.PowerState -eq 'PoweredOff')
+  }
+  $PoweredOnVM = $ALLvms | Where-Object -FilterScript {
+    ($_.PowerState -eq 'PoweredOn')
+  }
 
 
-  $COOPSinuse = $ALLvms | Where-Object {($_.Name -like "*COOP*") -and ($_.PowerState -eq "PoweredOn")}
-  $Snapshotsinfo = $Snapshots | Sort-Object -Property Created,SizeGB -Descending | Select-Object -Property VM,Name,Created,@{n="SizeGb"e={"{0:N2}" -f $_.SizeGb}}#, id -AutoSize
+  $COOPSinuse = $ALLvms | Where-Object -FilterScript {
+    ($_.Name -like '*COOP*') -and ($_.PowerState -eq 'PoweredOn')
+  }
+  $Snapshotsinfo = $Snapshots |
+  Sort-Object -Property Created, SizeGB -Descending |
+  Select-Object -Property VM, Name, Created, @{
+    n = 'SizeGb'
+    e = {
+      '{0:N2}' -f $_.SizeGb
+    }
+  }#, id -AutoSize
 
   Write-Host `n 
-  Write-Host "Datastore to be written to: "$DataStoreStore
-  Write-Host "VM Host to store COOPs: "$VMHostIP
-  Write-Host "Current File Location: " $local
-
-
+  Write-Host 'Datastore to be written to: '$DataStoreStore
+  Write-Host 'VM Host to store COOPs: '$VMHostIP
+  Write-Host 'Current File Location: ' $local
 }
 
 function Get-VMInformation
@@ -150,159 +174,234 @@ function Get-VMInformation
   $VMSnapshots = $VMServers | Get-Snapshots
 
   # Get list of all powered off servers
-  $VMPoweredOff = $VMServers | Where-Object {$_.PowerState -eq "PoweredOff"}
+  $VMPoweredOff = $VMServers | Where-Object -FilterScript {
+    $_.PowerState -eq 'PoweredOff'
+  }
 
   # Get list of all powered on servers
-  $VMPoweredOn = $VMServers | Where-Object {$_.PowerState -eq "PoweredOn"}
-
+  $VMPoweredOn = $VMServers | Where-Object -FilterScript {
+    $_.PowerState -eq 'PoweredOn'
+  }
 }
 
-Function Info-COOPs-Snaps {
-
+Function Info-COOPs-Snaps 
+{
   get-tag
-  Write-Host "============================="
+  Write-Host '============================='
   Write-Host `n 
-  $PoweredOffVM = get-vm | Where-Object {($_.PowerState -eq "PoweredOff") -and ($_.Name -notlike "*COOP*")}# | Format-Table -AutoSize
-  If ($PoweredOffVM.count -ne 0){
+  $PoweredOffVM = get-vm | Where-Object -FilterScript {
+    ($_.PowerState -eq 'PoweredOff') -and ($_.Name -notlike '*COOP*')
+  }# | Format-Table -AutoSize
+  If ($PoweredOffVM.count -ne 0)
+  {
     Write-Host `n "Regular VM's with the Power turned OFF."  -foreground Black -BackgroundColor Cyan
-    Write-Host "=============================" -foregroundcolor Cyan
+    Write-Host '=============================' -foregroundcolor Cyan
     Write-Host -sep `n $PoweredOffVM  -foregroundcolor Cyan #| Format-Table -AutoSize
-    Write-Host "=============================" -foregroundcolor Cyan
+    Write-Host '=============================' -foregroundcolor Cyan
     Write-Host -sep `n 
   }
-  $COOPSinuse = get-vm | Where-Object {($_.Name -like "*COOP*") -and ($_.PowerState -eq "PoweredOn")}
-  If ($COOPSinuse.count -ne 0){
+  $COOPSinuse = get-vm | Where-Object -FilterScript {
+    ($_.Name -like '*COOP*') -and ($_.PowerState -eq 'PoweredOn')
+  }
+  If ($COOPSinuse.count -ne 0)
+  {
     Write-Host `n "COOP'ed Servers with the Power ON."  -foreground White -BackgroundColor Red
-    Write-Host "=============================" -foregroundcolor Red
+    Write-Host '=============================' -foregroundcolor Red
     Write-Host -sep `n $COOPSinuse -foregroundcolor Red
-    Write-Host "=============================" -foregroundcolor Red
+    Write-Host '=============================' -foregroundcolor Red
     Write-Host -sep `n 
   }
-  $Snapshotinfo = get-vm | get-snapshot  | Sort-Object -Property Created,SizeGB -Descending | Select-Object -Property VM,Name,Created,@{n="SizeGb"
-e={"{0:N2}" -f $_.SizeGb}}#, id -AutoSize
-  If ($Snapshotinfo.count -ne 0){
+  $Snapshotinfo = get-vm |
+  get-snapshot  |
+  Sort-Object -Property Created, SizeGB -Descending |
+  Select-Object -Property VM, Name, Created, @{
+    n = 'SizeGb'
+    e = {
+      '{0:N2}' -f $_.SizeGb
+    }
+  }#, id -AutoSize
+  If ($Snapshotinfo.count -ne 0)
+  {
     Write-Host `n "Snapshot information of all VM's in our vsphere." -foreground Yellow -BackgroundColor Black
-    Write-Host "=============================" -foregroundcolor Yellow
+    Write-Host '=============================' -foregroundcolor Yellow
     $Snapshotinfo  | Select-Object -Property *
-    Write-Host "=============================" -foregroundcolor Yellow
+    Write-Host '=============================' -foregroundcolor Yellow
   }
 }
 
-Function Remove-COOPs {
-
-  if ($COOPprocess -eq "2"){Clear-Host}
+Function Remove-COOPs 
+{
+  if ($COOPprocess -eq '2')
+  {
+    Clear-Host
+  }
 
   #Get List of all VM's with "COOP" in the name. This will be used as the list of COOP's that will be deleted.
-  $VMServers  = get-vm | Where-Object {$_.Name -like "*COOP*"}
-  get-vm | Where-Object {$_.Name -like "*COOP*"} | Select-Object -Property Name
+  $VMServers  = get-vm | Where-Object -FilterScript {
+    $_.Name -like '*COOP*'
+  }
+  get-vm |
+  Where-Object -FilterScript {
+    $_.Name -like '*COOP*'
+  } |
+  Select-Object -Property Name
 
   #Enter the date of the COOP vms that you want to remove.  From the printout of the list above, you will be able to select the unwanted dates.
-  $COOPdate = Read-Host -Prompt "Enter the date of the COOP you want to remove (YYYYMMDD) "
+  $COOPdate = Read-Host -Prompt 'Enter the date of the COOP you want to remove (YYYYMMDD) '
 
   #Get List of the VM Clones you want to Remove.  This is similar to the first step, but uses the specific date you gave to search on.  This will be your list of systems to remove.
-  $VMSvr = $VMServers | Where-Object {($_.Name -like ('{0}*' -f $COOPdate)) -and ($_.PowerState -eq "PoweredOff")} #| ft Name, ResourcePool  -AutoSize
+  $VMSvr = $VMServers | Where-Object -FilterScript {
+    ($_.Name -like ('{0}*' -f $COOPdate)) -and ($_.PowerState -eq 'PoweredOff')
+  } #| ft Name, ResourcePool  -AutoSize
 
   Write-Host -sep `n "Preparing to remove ALL COOP'ed vm servers below." $VMSvr -foreground Red
 
   #Set "$OkRemove" to "N" 
-  $OkRemove = "N"
-  $OkRemove = Read-host -Prompt "Is this Okay? [N] "
+  $OkRemove = 'N'
+  $OkRemove = Read-Host -Prompt 'Is this Okay? [N] '
 
-  If ($OkRemove -eq "Y"){
+  If ($OkRemove -eq 'Y')
+  {
     #Remove older COOP's from the list you created in the early part of the script.
-    foreach ($VMz in $VMSvr) {
+    foreach ($VMz in $VMSvr) 
+    {
       Write-Host -sep `n ('Checking to ensure {0} is Powered Off.' -f $VMz) #-foregroundcolor Red
-      If (($VMz.PowerState -eq "PoweredOff") -and ($VMz.Name -like "*COOP*")){
-        Write-Host -sep `n $VMz "is in a Powered Off state and will be removed. " -foregroundcolor Blue 
+      If (($VMz.PowerState -eq 'PoweredOff') -and ($VMz.Name -like '*COOP*'))
+      {
+        Write-Host -sep `n $VMz 'is in a Powered Off state and will be removed. ' -foregroundcolor Blue 
         #Write-Host "Remove-VM $VMz -DeletePermanently -confirm:$true "
-        Remove-VM $VMz -DeletePermanently -confirm:$true -runasync 
-
-  }}}
+        Remove-VM $VMz -DeletePermanently -confirm:$true -runasync
+      }
+    }
+  }
 }
 
 
-Function Create-COOPs {
-
-  if ($COOPprocess -eq "3"){Clear-Host}
+Function Create-COOPs 
+{
+  if ($COOPprocess -eq '3')
+  {
+    Clear-Host
+  }
 
   #get-vm *gm* -tag "COOPdr" | where {$_.powerstate -eq "PoweredOn"} | ft Name, ResourcePool -AutoSize
   #$VMServer  = get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "rsrcngmfs02") -and ($_.name -ne "RSRCNGMNB01") -and ($_.name -ne "rsrcngmfs01") -and ($_.name -ne "rsrcngmcmps01")} | select Name, ResourcePool
   #get-vm *gm* | where {($_.powerstate -eq "PoweredOn") -and ($_.ResourcePool -like "Standard Server*") -and ($_.name -ne "rsrcngmfs02") -and ($_.name -ne "RSRCNGMNB01") -and ($_.name -ne "rsrcngmfs01") -and ($_.name -ne "rsrcngmcmps01")} | ft Name, ResourcePool -AutoSize
 
-  $VMServer  = get-vm *gm* -tag "COOPdr" | Where-Object {$_.powerstate -eq "PoweredOn"}
+  $VMServer  = get-vm *gm* -tag 'COOPdr' | Where-Object -FilterScript {
+    $_.powerstate -eq 'PoweredOn'
+  }
 
   #Create Time/Date Stamp
-  $TDStamp = Get-Date -UFormat "%Y%m%d" 
+  $TDStamp = Get-Date -UFormat '%Y%m%d' 
 
   #Prefix of Name of COOP
-  $COOPPrefix = $TDStamp+"-COOP." 
+  $COOPPrefix = $TDStamp+'-COOP.' 
 
   Write-Host -Separator `n 
-  Write-Host "Information to be used to create the COOPs: " -foregroundcolor black -backgroundcolor white #
-  Write-Host -Separator `n $VMServer | Select-Object -Property Name,ResourcePool 
+  Write-Host 'Information to be used to create the COOPs: ' -foregroundcolor black -backgroundcolor white #
+  Write-Host -Separator `n $VMServer | Select-Object -Property Name, ResourcePool 
   Write-Host -Separator `n 
-  Write-Host "=============================" -foregroundcolor Yellow
-  Write-Host "Writing to: "$DataStoreStore -foregroundcolor Yellow
-  Write-Host "On VM Host: "$VMHostIP -foregroundcolor Yellow
-  Write-Host "Example of COOP file name: "$COOPPrefix$($VMServer.Name[1]) -foregroundcolor Yellow
+  Write-Host '=============================' -foregroundcolor Yellow
+  Write-Host 'Writing to: '$DataStoreStore -foregroundcolor Yellow
+  Write-Host 'On VM Host: '$VMHostIP -foregroundcolor Yellow
+  Write-Host 'Example of COOP file name: '$COOPPrefix$($VMServer.Name[1]) -foregroundcolor Yellow
   Write-Host -Separator `n 
 
   #Set "$OkADD" to "N" and confirm addition of COOPs
-  $OkADD = "N"
-  Write-Host "Preparing to Create ALL New COOP servers with information above. " -NoNewline
-  $OkADD = Read-host -Prompt "Is this Okay? Y,S,[N] "
+  $OkADD = 'N'
+  Write-Host 'Preparing to Create ALL New COOP servers with information above. ' -NoNewline
+  $OkADD = Read-Host -Prompt 'Is this Okay? Y,S,[N] '
 
-  switch ($OkAdd){
-    Y {
-      foreach ($server in $VMserver) {
+  switch ($OkADD){
+    Y 
+    {
+      foreach ($server in $VMServer) 
+      {
         Clear-Host
-        Write-Host -Separator `n "Completed"
-        Write-Host "=============================" -foregroundcolor Yellow
-        get-vm | Where-Object {$_.Name -like $TDStamp+"-COOP.*"} | Select-Object -Property Name
-        Write-Host "New COOP Name: "$COOPPrefix$($server) "In ResourcePool: "$Server.ResourcePool -foregroundcolor Green -backgroundcolor black
+        Write-Host -Separator `n 'Completed'
+        Write-Host '=============================' -foregroundcolor Yellow
+        get-vm |
+        Where-Object -FilterScript {
+          $_.Name -like $TDStamp+'-COOP.*'
+        } |
+        Select-Object -Property Name
+        Write-Host 'New COOP Name: '$COOPPrefix$($server) 'In ResourcePool: '$server.ResourcePool -foregroundcolor Green -backgroundcolor black
         #Create the COOP copies with the information assigned to these var ($COOPPrefix, $VMserver, $dataStoreStore)
         #Write-Host "-name $COOPPrefix$($server) -vm $server -datastore $DataStoreStore -VMHost $VMHostIP -Location COOP -ResourcePool"$Server.ResourcePool
-        New-vm -name $COOPPrefix$($server) -vm $server -datastore $DataStoreStore -VMHost $VMHostIP -Location COOP -ResourcePool $Server.ResourcePool  
-    }}
-    S {
-      $server = Read-Host -Prompt "Single COOP (ServerName) " 
+        New-vm -name $COOPPrefix$($server) -vm $server -datastore $DataStoreStore -VMHost $VMHostIP -Location COOP -ResourcePool $server.ResourcePool  
+      }
+    }
+    S 
+    {
+      $server = Read-Host -Prompt 'Single COOP (ServerName) ' 
       $COOPPrefix+$server
       New-vm -name $COOPPrefix$($server) -vm $server -datastore $DataStoreStore -VMHost $VMHostIP -Location COOP -whatif
     }
-    Default {Write-Host "Exit"}
-}}
+    Default 
+    {
+      Write-Host 'Exit'
+    }
+  }
+}
 
 # Begin Script
 $WhatIfPreference = $true #This is a safety measure that I am working on.  My scripts will have a safety mode, or punch the monkey to actually execute.  You can thank Phil West for this idea, when he removed all of the printers on the print server when he double-clicked on a vbs script.
 $COOPprocess = 0
-$ServerList = ".\COOP-serverlist.csv"
-$DataStoreStore = Get-Datastore | Where-Object {$_.name -like "ESXi06-LOCALdatastore02"}
-$VMHostIP = "214.18.207.89"
+$ServerList = '.\COOP-serverlist.csv'
+$DataStoreStore = Get-Datastore | Where-Object -FilterScript {
+  $_.name -like 'ESXi06-LOCALdatastore02'
+}
+$VMHostIP = '214.18.207.89'
 $local = Get-Location
 
 
 #Set-Location .\ 
 
 
-Do {
+Do 
+{
   Clear-Host
   Safety-Display
   Menu-Main
   $COOPprocess = Read-Host -Prompt "Create and/or Remove and Create VM's"
   #Safety-Switch $COOPprocess
-  If ($COOPprocess -eq 0){    
-    If ($WhatIfPreference -eq $true){
-    $WhatIfPreference = $false}
-  else{$WhatIfPreference = $true}}
-}Until ($COOPprocess -eq "1" -or $COOPprocess -eq "2" -or $COOPprocess -eq "3" -or $COOPprocess -eq "4" -or $COOPprocess -eq 'E')
+  If ($COOPprocess -eq 0)
+  {    
+    If ($WhatIfPreference -eq $true)
+    {
+      $WhatIfPreference = $false
+    }
+    else
+    {
+      $WhatIfPreference = $true
+    }
+  }
+}
+Until ($COOPprocess -eq '1' -or $COOPprocess -eq '2' -or $COOPprocess -eq '3' -or $COOPprocess -eq '4' -or $COOPprocess -eq 'E')
 
 switch ($COOPprocess){
-  1 {Remove-COOPs
- Create-COOPs}
-  2 {Remove-COOPs}
-  3 {Create-COOPs}
-  4 {Info-COOPs-Snaps}
-  Default {Write-Host 'Exit'}
+  1 
+  {
+    Remove-COOPs
+    Create-COOPs
+  }
+  2 
+  {
+    Remove-COOPs
+  }
+  3 
+  {
+    Create-COOPs
+  }
+  4 
+  {
+    Info-COOPs-Snaps
+  }
+  Default 
+  {
+    Write-Host 'Exit'
+  }
 }
 
 
