@@ -42,7 +42,7 @@
   $AllVmTags = Get-Tag
   
   # Get Counts
-  $VmCountOff = $PoweredOffVM.count 
+  $VmCountOff = 5#$PoweredOffVM.count 
   $VmCountOn = $PoweredOnVM.count
   $AllVmHosts = $AllVmHosts.count
   $SnapshotDateWindow = 5
@@ -66,7 +66,7 @@
       [Parameter(Mandatory)]
       [String]$MessageHeading,
       [Parameter(Mandatory = $false)]
-      $MessageCount = $null
+      [int]$MessageCount = ''
     )
     (@'
 =============================
