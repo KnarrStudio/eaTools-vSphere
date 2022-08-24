@@ -1,0 +1,4 @@
+"Name","Folder","DiskGB0","DiskGB1","DiskGB2","DiskStorageFormat","NumCpu","MemoryGB","GuestId","StartConnected","Confirm","VLAN"
+"RHEL6_01","ArcGIX","100","0","0","thin","1","4","rhel6_64Guest","$true","$False","VLAN22"
+
+
