@@ -172,14 +172,17 @@ Function Show-VmSnapshots
 {
   param(
     [Parameter(Mandatory = $false)]
-    [ValidateSet('VM', 'Name', 'Created', 'SizeMB')] 
+    [ValidateSet('VM', 'Name', 'Created', 'Size')] 
     [string]$SortOn = 'VM'
   )
+  if($SortOn -eq 'Size'){
+		$SortOn = 'SizeGb'
+  }
   # Get all of the Snapshot
   $AllSnapshots = get-vm |
   get-snapshot  |
   Sort-Object -Property $SortOn |
-  Select-Object -Property VM, Name, Created, SizeMB, id
+  Select-Object -Property VM, Name, Created, SizeGb, id
   # Display a list of Snapshots
   Write-Verbose -Message ('Total Snapshots: {0}' -f $AllSnapshots.count)
   $AllSnapshots | Format-Table -AutoSize
