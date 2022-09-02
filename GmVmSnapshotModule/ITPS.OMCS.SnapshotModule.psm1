@@ -61,7 +61,7 @@ Function New-VmSnapshot
   )
 
   $DeleteDate = $((Get-Date).AddDays($Deletelnxdays))
-  $SnapshotName = ('{0}--{1}_Del' -f $TicketNumber , $($DeleteDate).ToString('yyyyMMdd'))
+  $SnapshotName = ('SR_{0} - DEL_{1}' -f $TicketNumber , $($DeleteDate).ToString('yyyyMMMdd'))
   $SnapshotDescription = ('Delete on: {2}| Created By:{4}| Customer: {0}| Contact (phone/email):{1}| Reason:{3}' -f $Customer , $Contactinfo, 
   $DeleteDate, $ReasonForSnapshot , $($env:USERNAME))
 
