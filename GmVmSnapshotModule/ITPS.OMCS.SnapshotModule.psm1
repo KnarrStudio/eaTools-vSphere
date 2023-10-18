@@ -1,4 +1,123 @@
-﻿#Module v2.0
+﻿#requires -Version 3.0 -Modules VMware.VimAutomation.Core
+Function Find-VmSnapshot
+{
+  <#
+      .SYNOPSIS
+      Finds a snapshot based on a search string
+
+      .DESCRIPTION
+      Searches either the Name or the Description field of all of the snapshot to return the ones with your search string
+
+      .PARAMETER SearchField
+      Either the 'Name' or the 'Description' field that are found in a snapshot
+
+      .PARAMETER SearchString
+      The string you are searching for
+
+      .EXAMPLE
+      Find-VmSnapshot -SearchField Name -SearchString INC123456
+      This will search the Name field for the string (in this case a ticket number) INC123456
+
+      .EXAMPLE
+      Find-VmSnapshot
+      This will return all snapshots on all VMs
+
+      .NOTES
+      Place additional notes here.
+
+      .INPUTS
+      Strings
+
+      .OUTPUTS
+      Object
+  #>
+
+  param(
+    [Parameter(Mandatory,HelpMessage = 'The Field to search.  Name or Description')]
+    [ValidateSet('Name','Description')]
+    [AllowNull()]
+    [AllowEmptyCollection()]
+    [AllowEmptyString()][String]$SearchField,
+    [AllowNull()]
+    [AllowEmptyCollection()]
+    [AllowEmptyString()][String]$SearchString,
+    [AllowNull()]
+    [AllowEmptyCollection()]
+    [AllowEmptyString()][String]$SearchBeforeDate,
+    [AllowNull()]
+    [AllowEmptyCollection()]
+    [AllowEmptyString()][String]$SearchDaysBack
+  )
+
+  function Script:Search-Snapshots
+  {
+    <#
+        .SYNOPSIS
+        Internal search
+    #>
+   
+    param
+    (
+      [Parameter(Mandatory)][Object]$AllSnapshots,
+      [Parameter(Mandatory)][Object]$SearchField,
+      [Parameter(Mandatory)][Object]$SearchString
+    )
+    $AllSnapshots | Where-Object -Property $SearchField -Match -Value $SearchString
+  }
+
+
+  $AllVms = Get-VM
+ 
+  Try
+  {
+    Write-Verbose -Message 'TRY'
+
+    $AllSnapshots = $AllVms | Get-Snapshot -ErrorAction Stop
+
+    if($SearchField -or $SearchString)
+    {
+      $FilteredSnapshotList = Search-Snapshots -AllSnapshots $AllSnapshots -SearchField $SearchField -SearchString $SearchString
+    }
+    elseif($SearchDaysBack -or $SearchBeforeDate)
+    {
+      if($SearchDaysBack)
+      {
+        $DaysBack = $SearchDaysBack
+      }else
+      {
+        $DaysBack = (New-TimeSpan -Start $SearchBeforeDate -End (Get-Date)).Days
+      }
+      $FilteredSnapshotList = $AllSnapshots | Where-Object -Property Created -LE -Value $(Get-Date).AddDays(-$DaysBack)
+    }
+    else
+    {
+      $FilteredSnapshotList = $AllSnapshots
+    }
+    if($FilteredSnapshotList.count -gt 0)
+    {
+      $FoundSnapshot = $FilteredSnapshotList|  Select-Object -Property VM, Name, @{
+        L = 'size GB'
+        E = {
+          '{0:N2}' -f $_.sizeGB
+        }
+      } 
+
+      Write-Host -Object ('Result Count: {0}' -f $($FoundSnapshot.count))
+
+      $FoundSnapshot
+    }
+    else
+    {
+      Write-Host -Object 'None Found'
+    }
+  }
+  Catch
+  {
+    $AllSnapshots = 'Meaningful Error Message Here'
+    Write-Verbose -Message 'CATCH'
+  }
+}
+
 Function New-VmSnapshot
 {
   <#
@@ -94,9 +213,16 @@ Function New-VmSnapshot
   Get-Snapshot |
   Where-Object -Property Name -Match -Value $SnapshotName
   $Newsnaps |
-  Select-Object -Property VM, Name, @{L = "size GB";E = {"{0:N2}" -f $_.sizeGB} } |  Format-Table -AutoSize 
+  Select-Object -Property VM, Name, @{
+    L = 'size GB'
+    E = {
+      '{0:N2}' -f $_.sizeGB
+    }
+  } |
+  Format-Table -AutoSize 
   Write-Host -Object ('Count: {0}' -f $($Newsnaps.count))
 }
 
 
-Export-ModuleMember -Function New-VmSnapshot
+
+Export-ModuleMember -Function Find-VmSnapshot, New-VmSnapshot
